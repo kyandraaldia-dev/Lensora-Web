@@ -124,3 +124,145 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    const chatbotWindow = document.getElementById('chatbot-window');
+    const closeChatbot = document.getElementById('close-chatbot');
+    const chatbotInput = document.getElementById('chatbot-input');
+    const chatbotSend = document.getElementById('chatbot-send');
+    const chatbotMessages = document.getElementById('chatbot-messages');
+    const quickReplies = document.querySelectorAll('.quick-btn');
+
+    // Toggle chatbot
+    chatbotToggle.addEventListener('click', () => {
+        chatbotWindow.classList.toggle('active');
+    });
+
+    closeChatbot.addEventListener('click', () => {
+        chatbotWindow.classList.remove('active');
+    });
+
+    // Quick replies
+    quickReplies.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const message = btn.dataset.reply;
+            sendUserMessage(message);
+        });
+    });
+
+    // Send message
+    function sendMessage() {
+        const message = chatbotInput.value.trim();
+        if (message) {
+            sendUserMessage(message);
+            chatbotInput.value = '';
+        }
+    }
+
+    chatbotSend.addEventListener('click', sendMessage);
+    chatbotInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    function sendUserMessage(message) {
+        addMessage(message, 'user');
+        setTypingIndicator(true);
+        
+        setTimeout(() => {
+            setTypingIndicator(false);
+            getBotResponse(message);
+        }, 1000 + Math.random() * 1000);
+    }
+
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        messageDiv.innerHTML = `
+            <div class="avatar">
+                ${sender === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>'}
+            </div>
+            <div class="message-content">
+                <p>${text}</p>
+            </div>
+        `;
+        
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function setTypingIndicator(show) {
+        const existingIndicator = chatbotMessages.querySelector('.typing-indicator');
+        if (existingIndicator) existingIndicator.remove();
+        
+        if (show) {
+            const indicator = document.createElement('div');
+            indicator.className = 'message bot-message typing-indicator';
+            indicator.innerHTML = `
+                <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatbotMessages.appendChild(indicator);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+    }
+
+    function getBotResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        let response = '';
+
+        // Respons otomatis berdasarkan keyword
+        if (lowerMessage.includes('wedding') || lowerMessage.includes('prewed')) {
+            response = '💒 Untuk wedding/prewedding, kami punya 3 paket: Basic (Rp1,5jt), Premium (Rp3,5jt ⭐ Terfavorit), dan Exclusive (Rp6jt). Mau info detail paket mana?';
+        } 
+        else if (lowerMessage.includes('product') || lowerMessage.includes('produk')) {
+            response = '📸 Product shoot mulai Rp500rb/sesi. Cocok untuk e-commerce, katalog, makanan. Hasil edit premium + background custom. Butuh contoh portofolio?';
+        }
+        else if (lowerMessage.includes('corporate') || lowerMessage.includes('company')) {
+            response = '🏢 Company profile video 2-3 menit mulai Rp2,5jt. Termasuk drone shot, interview, dan musik epic. Timeline produksi 7 hari.';
+        }
+        else if (lowerMessage.includes('harga') || lowerMessage.includes('paket')) {
+            response = '💰 Paket populer:\n• Basic: Rp1,5jt (3 jam, 50 foto)\n• Premium: Rp3,5jt (6 jam, foto+video)\n• Exclusive: Rp6jt (full day)\nKlik tombol quick reply atau ketik kebutuhanmu!';
+        }
+        else if (lowerMessage.includes('booking') || lowerMessage.includes('pesan')) {
+            response = '📅 Cara booking mudah:\n1. Chat WA: wa.me/6281234567890\n2. Pilih paket & tanggal\n3. DP 50%\n4. Konfirmasi lokasi\nSekarang available untuk bulan ini!';
+        }
+        else if (lowerMessage.includes('halo') || lowerMessage.includes('hai')) {
+            response = 'Hai! 😊 Senang bisa bantu. Mau tanya wedding, product shoot, atau company profile?';
+        }
+        else {
+            response = 'Terima kasih pertanyaannya! Untuk info lengkap, langsung WA CS kami ya: <a href="https://wa.me/6281234567890" target="_blank" style="color:#25D366;font-weight:600;">Chat WhatsApp</a>';
+        }
+
+        addMessage(response, 'bot');
+        
+        // Update quick replies berdasarkan konteks
+        updateQuickReplies(lowerMessage);
+    }
+
+    function updateQuickReplies(context) {
+        const replies = [
+            { text: 'Lihat Paket', reply: 'harga' },
+            { text: 'Portofolio', reply: 'portfolio' },
+            { text: 'Booking', reply: 'booking' },
+            { text: 'WA CS', reply: 'whatsapp' }
+        ];
+        
+        const quickContainer = document.getElementById('quick-replies');
+        quickContainer.innerHTML = '';
+        replies.forEach(r => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-btn';
+            btn.textContent = r.text;
+            btn.dataset.reply = r.reply;
+            btn.onclick = () => sendUserMessage(r.reply);
+            quickContainer.appendChild(btn);
+        });
+    }
+});
